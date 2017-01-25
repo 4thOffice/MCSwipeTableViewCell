@@ -267,10 +267,10 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
     _direction                          = [self directionWithPercentage:percentage];
     
     if (state == UIGestureRecognizerStateBegan || state == UIGestureRecognizerStateChanged) {
-        [self animateSliderWithXTranslation:translation.x animationDuration:animationDuration hasEnded:NO];
+        [self animateSliderWithXTranslation:translation.x animationDuration:0.0f hasEnded:NO];
         [gesture setTranslation:CGPointZero inView:self];
     } else if (state == UIGestureRecognizerStateEnded || state == UIGestureRecognizerStateCancelled) {
-        [self animateSliderWithXTranslation:translation.x animationDuration:animationDuration hasEnded:YES];
+        [self animateSliderWithXTranslation:translation.x animationDuration:0.0f hasEnded:YES];
     }
 }
 
@@ -282,8 +282,11 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
         
         [self setupSwipingView];
         
-        CGPoint center = {_contentScreenshotView.center.x + xTranslation, _contentScreenshotView.center.y};
-        _contentScreenshotView.center = center;
+        [UIView animateWithDuration:animationDuration animations:^{
+            CGPoint center = {_contentScreenshotView.center.x + xTranslation, _contentScreenshotView.center.y};
+            _contentScreenshotView.center = center;
+        }];
+        
         [self animateWithOffset:CGRectGetMinX(_contentScreenshotView.frame)];
         
         // Notifying the delegate that we are dragging with an offset percentage.
@@ -645,11 +648,13 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
 #pragma mark - Trigger Manually
 
 - (void)triggerState1 {
-    [UIView animateWithDuration:0.15f animations:^{
-        [self animateSliderWithXTranslation:-70.f animationDuration:0 hasEnded:NO];
+    [self animateSliderWithXTranslation:70.f animationDuration:1.0f hasEnded:NO];
+    
+    /*[UIView animateWithDuration:1.0f animations:^{
+        
     } completion:^(BOOL finished) {
         [self animateSliderWithXTranslation:0.f animationDuration:0 hasEnded:YES];
-    }];
+    }];*/
 }
 
 #pragma mark - Utilities
