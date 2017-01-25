@@ -175,9 +175,14 @@ typedef void (^MCSwipeCompletionBlock)(MCSwipeTableViewCell *cell, MCSwipeTableV
 - (void)swipeToOriginWithCompletion:(void(^)(void))completion;
 
 /**
- *  Trigger state 1 as if the user had swiped and released.
+ *  Trigger left animation as if the user had swiped and released.
  */
-- (void)triggerState1;
+- (void)performManualLeftAnimation;
+
+/**
+ *  Trigger right animation as if the user had swiped and released.
+ */
+- (void)performManualRightAnimation;
 
 @end
 
