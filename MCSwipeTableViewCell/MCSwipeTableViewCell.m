@@ -459,7 +459,7 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
     
     color = self.defaultColor ? self.defaultColor : [UIColor clearColor];
     
-    if (percentage > _firstTrigger && _modeForState1) {
+    if (percentage > 0 && _modeForState1) {
         color = _color1;
     }
     
@@ -467,7 +467,7 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
         color = _color2;
     }
     
-    if (percentage < -_firstTrigger && _modeForState3) {
+    if (percentage < 0 && _modeForState3) {
         color = _color3;
     }
     
