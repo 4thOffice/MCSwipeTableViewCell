@@ -649,7 +649,7 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
 
 #pragma mark - Trigger Manually
 
-- (void)performManualAnimation:(CGFloat)xTranslation {
+- (void)performManualAnimation:(CGFloat)xTranslation completion:(void (^ __nullable)(BOOL finished))completion {
     [self animateSliderWithXTranslation:70.f
                  swipeAnimationDuration:0.25f
                 endingAnimationDuration:0.f
@@ -659,16 +659,16 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
                                               swipeAnimationDuration:0.f
                                              endingAnimationDuration:0.25f
                                                             hasEnded:YES
-                                                          completion:NULL];
+                                                          completion:completion];
                              }];
 }
 
-- (void)performManualLeftAnimation {
-    [self performManualAnimation:70.f];
+- (void)performManualLeftAnimation:(void (^ __nullable)(BOOL finished))completion {
+    [self performManualAnimation:70.f completion:completion];
 }
 
-- (void)performManualRightAnimation {
-    [self performManualAnimation:-70.f];
+- (void)performManualRightAnimation:(void (^ __nullable)(BOOL finished))completion {
+    [self performManualAnimation:-70.f completion:completion];
 }
 
 #pragma mark - Utilities
