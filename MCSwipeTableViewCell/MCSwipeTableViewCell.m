@@ -267,14 +267,14 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
     _direction                          = [self directionWithPercentage:percentage];
     
     if (state == UIGestureRecognizerStateBegan || state == UIGestureRecognizerStateChanged) {
-        [self animateSliderWithXTranslation:translation.x animationDuration:0.0f hasEnded:NO];
+        [self animateSliderWithXTranslation:translation.x swipeAnimationDuration:0.0f endingAnimationDuration:animationDuration hasEnded:NO completion:NULL];
         [gesture setTranslation:CGPointZero inView:self];
     } else if (state == UIGestureRecognizerStateEnded || state == UIGestureRecognizerStateCancelled) {
-        [self animateSliderWithXTranslation:translation.x animationDuration:0.0f hasEnded:YES];
+        [self animateSliderWithXTranslation:translation.x swipeAnimationDuration:0.0f endingAnimationDuration:animationDuration hasEnded:YES completion:NULL];
     }
 }
 
-- (void)animateSliderWithXTranslation:(CGFloat)xTranslation animationDuration:(CGFloat)animationDuration hasEnded:(BOOL)hasEnded {
+- (void)animateSliderWithXTranslation:(CGFloat)xTranslation swipeAnimationDuration:(CGFloat)swipeAnimationDuration endingAnimationDuration:(CGFloat)endingAnimationDuration hasEnded:(BOOL)hasEnded completion:(void (^ __nullable)(BOOL finished))completion {
     CGFloat percentage = [self percentageWithOffset:CGRectGetMinX(_contentScreenshotView.frame) relativeToWidth:CGRectGetWidth(self.bounds)];
     
     if (!hasEnded) {
@@ -282,10 +282,12 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
         
         [self setupSwipingView];
         
-        [UIView animateWithDuration:animationDuration animations:^{
-            CGPoint center = {_contentScreenshotView.center.x + xTranslation, _contentScreenshotView.center.y};
-            _contentScreenshotView.center = center;
-        }];
+        [UIView animateWithDuration:swipeAnimationDuration
+                         animations:^{
+                             CGPoint center = {_contentScreenshotView.center.x + xTranslation, _contentScreenshotView.center.y};
+                             _contentScreenshotView.center = center;
+                         }
+                         completion:completion];
         
         [self animateWithOffset:CGRectGetMinX(_contentScreenshotView.frame)];
         
@@ -318,7 +320,7 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
         }
         
         if (cellMode == MCSwipeTableViewCellModeExit && _direction != MCSwipeTableViewCellDirectionCenter) {
-            [self moveWithDuration:animationDuration andDirection:_direction];
+            [self moveWithDuration:endingAnimationDuration andDirection:_direction];
         }
         
         else {
@@ -647,14 +649,26 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
 
 #pragma mark - Trigger Manually
 
-- (void)triggerState1 {
-    [self animateSliderWithXTranslation:70.f animationDuration:1.0f hasEnded:NO];
-    
-    /*[UIView animateWithDuration:1.0f animations:^{
-        
-    } completion:^(BOOL finished) {
-        [self animateSliderWithXTranslation:0.f animationDuration:0 hasEnded:YES];
-    }];*/
+- (void)performManualAnimation:(CGFloat)xTranslation {
+    [self animateSliderWithXTranslation:70.f
+                 swipeAnimationDuration:0.25f
+                endingAnimationDuration:0.f
+                               hasEnded:NO
+                             completion:^(BOOL finished) {
+                                 [self animateSliderWithXTranslation:0.f
+                                              swipeAnimationDuration:0.f
+                                             endingAnimationDuration:0.25f
+                                                            hasEnded:YES
+                                                          completion:NULL];
+                             }];
+}
+
+- (void)performManualLeftAnimation {
+    [self performManualAnimation:70.f];
+}
+
+- (void)performManualRightAnimation {
+    [self performManualAnimation:-70.f];
 }
 
 #pragma mark - Utilities
