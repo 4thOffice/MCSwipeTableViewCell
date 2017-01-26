@@ -326,6 +326,9 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
         else {
             [self swipeToOriginWithCompletion:^{
                 [self executeCompletionBlock];
+                if (completion) {
+                    completion(YES);
+                }
             }];
         }
         
@@ -650,7 +653,7 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
 #pragma mark - Trigger Manually
 
 - (void)performManualAnimation:(CGFloat)xTranslation completion:(void (^ __nullable)(BOOL finished))completion {
-    [self animateSliderWithXTranslation:70.f
+    [self animateSliderWithXTranslation:xTranslation
                  swipeAnimationDuration:0.25f
                 endingAnimationDuration:0.f
                                hasEnded:NO
