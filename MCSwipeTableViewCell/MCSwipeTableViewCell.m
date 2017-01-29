@@ -614,6 +614,12 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
     }];
 }
 
+- (void)swipeToOriginWithCompletion:(void(^)(void))completion {
+    [self swipeToOriginWithDelay:0.f
+                        duration:kMCBounceDuration1
+                      completion:completion];
+}
+
 - (void)swipeToOriginWithDelay:(NSTimeInterval)delay duration:(NSTimeInterval)duration completion:(void(^)(void))completion {
     CGFloat bounceDistance = kMCBounceAmplitude * _currentPercentage;
     
