@@ -267,14 +267,14 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
     _direction                          = [self directionWithPercentage:percentage];
     
     if (state == UIGestureRecognizerStateBegan || state == UIGestureRecognizerStateChanged) {
-        [self animateSliderWithXTranslation:translation.x swipeAnimationDuration:0.0f endingAnimationDuration:animationDuration hasEnded:NO completion:NULL];
+        [self animateSliderWithXTranslation:translation.x swipeAnimationDuration:0.0f withDelay:0.0f endingAnimationDuration:animationDuration hasEnded:NO completion:NULL];
         [gesture setTranslation:CGPointZero inView:self];
     } else if (state == UIGestureRecognizerStateEnded || state == UIGestureRecognizerStateCancelled) {
-        [self animateSliderWithXTranslation:translation.x swipeAnimationDuration:0.0f endingAnimationDuration:animationDuration hasEnded:YES completion:NULL];
+        [self animateSliderWithXTranslation:translation.x swipeAnimationDuration:0.0f withDelay:0.0f endingAnimationDuration:animationDuration hasEnded:YES completion:NULL];
     }
 }
 
-- (void)animateSliderWithXTranslation:(CGFloat)xTranslation swipeAnimationDuration:(CGFloat)swipeAnimationDuration endingAnimationDuration:(CGFloat)endingAnimationDuration hasEnded:(BOOL)hasEnded completion:(void (^ __nullable)(BOOL finished))completion {
+- (void)animateSliderWithXTranslation:(CGFloat)xTranslation swipeAnimationDuration:(NSTimeInterval)swipeAnimationDuration withDelay:(NSTimeInterval)withDelay endingAnimationDuration:(CGFloat)endingAnimationDuration hasEnded:(BOOL)hasEnded completion:(void (^ __nullable)(BOOL finished))completion {
     CGFloat percentage = [self percentageWithOffset:CGRectGetMinX(_contentScreenshotView.frame) relativeToWidth:CGRectGetWidth(self.bounds)];
     
     if (!hasEnded) {
@@ -283,6 +283,8 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
         [self setupSwipingView];
         
         [UIView animateWithDuration:swipeAnimationDuration
+                              delay:withDelay
+                            options:kNilOptions
                          animations:^{
                              CGPoint center = {_contentScreenshotView.center.x + xTranslation, _contentScreenshotView.center.y};
                              _contentScreenshotView.center = center;
@@ -324,7 +326,7 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
         }
         
         else {
-            [self swipeToOriginWithCompletion:^{
+            [self swipeToOriginWithDelay:withDelay duration:endingAnimationDuration completion:^{
                 [self executeCompletionBlock];
                 if (completion) {
                     completion(YES);
@@ -612,10 +614,10 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
     }];
 }
 
-- (void)swipeToOriginWithCompletion:(void(^)(void))completion {
+- (void)swipeToOriginWithDelay:(NSTimeInterval)delay duration:(NSTimeInterval)duration completion:(void(^)(void))completion {
     CGFloat bounceDistance = kMCBounceAmplitude * _currentPercentage;
     
-    [UIView animateWithDuration:kMCBounceDuration1 delay:0 options:(UIViewAnimationOptionCurveEaseOut) animations:^{
+    [UIView animateWithDuration:duration delay:delay options:(UIViewAnimationOptionCurveEaseOut) animations:^{
         
         CGRect frame = _contentScreenshotView.frame;
         frame.origin.x = -bounceDistance;
@@ -658,27 +660,33 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
     _secondTrigger = 1.0;
     
     [self animateSliderWithXTranslation:xTranslation
-                 swipeAnimationDuration:0.25f
+                 swipeAnimationDuration:0.5f
+                              withDelay:0.0f
                 endingAnimationDuration:0.f
                                hasEnded:NO
                              completion:^(BOOL finished) {
                                  [self animateSliderWithXTranslation:0.f
                                               swipeAnimationDuration:0.f
-                                             endingAnimationDuration:0.25f
+                                                           withDelay:0.5f
+                                             endingAnimationDuration:0.5f
                                                             hasEnded:YES
-                                                          completion:completion];
+                                                          completion:^(BOOL finished) {
+                                                              _firstTrigger = kMCStop1;
+                                                              _secondTrigger = kMCStop2;
+                                                              
+                                                              if (completion) {
+                                                                  completion(YES);
+                                                              }
+                                                          }];
                              }];
-    
-    _firstTrigger = kMCStop1;
-    _secondTrigger = kMCStop2;
 }
 
 - (void)performManualLeftAnimation:(void (^ __nullable)(BOOL finished))completion {
-    [self performManualAnimation:70.f completion:completion];
+    [self performManualAnimation:150.f completion:completion];
 }
 
 - (void)performManualRightAnimation:(void (^ __nullable)(BOOL finished))completion {
-    [self performManualAnimation:-70.f completion:completion];
+    [self performManualAnimation:-150.f completion:completion];
 }
 
 #pragma mark - Utilities
