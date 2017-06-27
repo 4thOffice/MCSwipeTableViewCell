@@ -41,6 +41,8 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellMode) {
     MCSwipeTableViewCellModeSwitch
 };
 
+NS_ASSUME_NONNULL_BEGIN
+
 /**
  *  `MCSwipeCompletionBlock`
  *
@@ -161,10 +163,10 @@ typedef void (^MCSwipeCompletionBlock)(MCSwipeTableViewCell *cell, MCSwipeTableV
  *  @param completionBlock Block of the state triggered during a swipe.
  */
 - (void)setSwipeGestureWithView:(UIView *)view
-                          color:(UIColor *)color
+                          color:(UIColor *__nullable)color
                            mode:(MCSwipeTableViewCellMode)mode
                           state:(MCSwipeTableViewCellState)state
-                completionBlock:(MCSwipeCompletionBlock)completionBlock;
+                completionBlock:(MCSwipeCompletionBlock __nullable)completionBlock;
 
 
 /**
@@ -172,7 +174,7 @@ typedef void (^MCSwipeCompletionBlock)(MCSwipeTableViewCell *cell, MCSwipeTableV
  *
  *  @param completion Callback block executed at the end of the animation.
  */
-- (void)swipeToOriginWithCompletion:(void(^)(void))completion;
+- (void)swipeToOriginWithCompletion:(void(^ __nullable)(void))completion;
 
 /**
  *  Trigger left animation as if the user had swiped and released.
@@ -213,5 +215,7 @@ typedef void (^MCSwipeCompletionBlock)(MCSwipeTableViewCell *cell, MCSwipeTableV
  *                      left of the table view.
  */
 - (void)swipeTableViewCell:(MCSwipeTableViewCell *)cell didSwipeWithPercentage:(CGFloat)percentage;
+
+NS_ASSUME_NONNULL_END
 
 @end
