@@ -12,7 +12,7 @@
 
 /** Describes the state that has been triggered by the user. */
 typedef NS_OPTIONS(NSUInteger, MCSwipeTableViewCellState) {
-
+    
     /** No state has been triggered. */
     MCSwipeTableViewCellStateNone = 0,
     
@@ -21,7 +21,7 @@ typedef NS_OPTIONS(NSUInteger, MCSwipeTableViewCellState) {
     
     /** 2nd state triggered during a Left -> Right swipe. */
     MCSwipeTableViewCellState2 = (1 << 1),
-
+    
     /** 1st state triggered during a Right -> Left swipe. */
     MCSwipeTableViewCellState3 = (1 << 2),
     
@@ -33,10 +33,10 @@ typedef NS_OPTIONS(NSUInteger, MCSwipeTableViewCellState) {
 typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellMode) {
     /** Disabled swipe.  */
     MCSwipeTableViewCellModeNone = 0,
-
+    
     /** Upon swipe the cell if exited from the view. Useful for destructive actions. */
     MCSwipeTableViewCellModeExit,
-
+    
     /** Upon swipe the cell if automatically swiped back to it's initial position. */
     MCSwipeTableViewCellModeSwitch
 };
@@ -61,9 +61,9 @@ typedef void (^MCSwipeCompletionBlock)(MCSwipeTableViewCell *cell, MCSwipeTableV
 /** Delegate of `MCSwipeTableViewCell` */
 @property (nonatomic, assign) id <MCSwipeTableViewCellDelegate> delegate;
 
-/** 
+/**
  * Damping of the physical spring animation. Expressed in percent.
- * 
+ *
  * @discussion Only applied for version of iOS > 7.
  */
 @property (nonatomic, assign, readwrite) CGFloat damping;
@@ -179,12 +179,12 @@ typedef void (^MCSwipeCompletionBlock)(MCSwipeTableViewCell *cell, MCSwipeTableV
 /**
  *  Trigger left animation as if the user had swiped and released.
  */
-- (void)performManualLeftAnimation:(UIView *)view color:(UIColor *)color state:(MCSwipeTableViewCellState)state completion:(void (^ __nullable)(BOOL finished))completion;
+- (void)performManualLeftAnimation:(UIView * _Nullable)view color:(UIColor *)color state:(MCSwipeTableViewCellState)state completion:(void (^ __nullable)(BOOL finished))completion;
 
 /**
  *  Trigger right animation as if the user had swiped and released.
  */
-- (void)performManualRightAnimation:(UIView *)view color:(UIColor *)color state:(MCSwipeTableViewCellState)state completion:(void (^ __nullable)(BOOL finished))completion;
+- (void)performManualRightAnimation:(UIView * _Nullable)view color:(UIColor *)color state:(MCSwipeTableViewCellState)state completion:(void (^ __nullable)(BOOL finished))completion;
 
 @end
 
@@ -219,3 +219,4 @@ typedef void (^MCSwipeCompletionBlock)(MCSwipeTableViewCell *cell, MCSwipeTableV
 NS_ASSUME_NONNULL_END
 
 @end
+

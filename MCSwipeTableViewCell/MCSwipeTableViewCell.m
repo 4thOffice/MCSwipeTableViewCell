@@ -271,14 +271,26 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
     _direction                          = [self directionWithPercentage:percentage];
     
     if (state == UIGestureRecognizerStateBegan || state == UIGestureRecognizerStateChanged) {
-        [self animateSliderWithXTranslation:translation.x swipeAnimationDuration:0.0f withDelay:0.0f endingAnimationDuration:animationDuration hasEnded:NO completion:NULL];
+        [self animateSliderWithXTranslation:translation.x
+                     swipeAnimationDuration:0.0f
+                                  withDelay:0.0f
+                    endingAnimationDuration:animationDuration
+                                   hasEnded:NO
+                        ignoreSwipeProgress:NO
+                                 completion:NULL];
         [gesture setTranslation:CGPointZero inView:self];
     } else if (state == UIGestureRecognizerStateEnded || state == UIGestureRecognizerStateCancelled) {
-        [self animateSliderWithXTranslation:translation.x swipeAnimationDuration:0.0f withDelay:0.0f endingAnimationDuration:animationDuration hasEnded:YES completion:NULL];
+        [self animateSliderWithXTranslation:translation.x
+                     swipeAnimationDuration:0.0f
+                                  withDelay:0.0f
+                    endingAnimationDuration:animationDuration
+                                   hasEnded:YES
+                        ignoreSwipeProgress:YES
+                                 completion:NULL];
     }
 }
 
-- (void)animateSliderWithXTranslation:(CGFloat)xTranslation swipeAnimationDuration:(NSTimeInterval)swipeAnimationDuration withDelay:(NSTimeInterval)withDelay endingAnimationDuration:(CGFloat)endingAnimationDuration hasEnded:(BOOL)hasEnded completion:(void (^ __nullable)(BOOL finished))completion {
+- (void)animateSliderWithXTranslation:(CGFloat)xTranslation swipeAnimationDuration:(NSTimeInterval)swipeAnimationDuration withDelay:(NSTimeInterval)withDelay endingAnimationDuration:(CGFloat)endingAnimationDuration hasEnded:(BOOL)hasEnded ignoreSwipeProgress:(BOOL)ignoreSwipe completion:(void (^ __nullable)(BOOL finished))completion {
     CGFloat percentage = [self percentageWithOffset:CGRectGetMinX(_contentScreenshotView.frame) relativeToWidth:CGRectGetWidth(self.bounds)];
     
     if (!hasEnded) {
@@ -298,8 +310,10 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
         [self animateWithOffset:CGRectGetMinX(_contentScreenshotView.frame)];
         
         // Notifying the delegate that we are dragging with an offset percentage.
-        if ([_delegate respondsToSelector:@selector(swipeTableViewCell:didSwipeWithPercentage:)]) {
-            [_delegate swipeTableViewCell:self didSwipeWithPercentage:percentage];
+        if (!ignoreSwipe) {
+            if ([_delegate respondsToSelector:@selector(swipeTableViewCell:didSwipeWithPercentage:)]) {
+                [_delegate swipeTableViewCell:self didSwipeWithPercentage:percentage];
+            }
         }
     } else {
         _dragging = NO;
@@ -331,7 +345,10 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
         
         else {
             [self swipeToOriginWithDelay:withDelay duration:endingAnimationDuration completion:^{
-                [self executeCompletionBlock];
+                if (!ignoreSwipe) {
+                    [self executeCompletionBlock];
+                }
+                
                 if (completion) {
                     completion(YES);
                 }
@@ -339,8 +356,10 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
         }
         
         // We notify the delegate that we just ended swiping.
-        if ([_delegate respondsToSelector:@selector(swipeTableViewCellDidEndSwiping:)]) {
-            [_delegate swipeTableViewCellDidEndSwiping:self];
+        if (!ignoreSwipe) {
+            if ([_delegate respondsToSelector:@selector(swipeTableViewCellDidEndSwiping:)]) {
+                [_delegate swipeTableViewCellDidEndSwiping:self];
+            }
         }
     }
 }
@@ -522,6 +541,7 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
     if (view) {
         [self setViewOfSlidingView:view];
         _slidingView.alpha = [self alphaWithPercentage:percentage];
+        
         [self slideViewWithPercentage:percentage view:view isDragging:self.shouldAnimateIcons];
     }
     
@@ -664,13 +684,19 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
 
 #pragma mark - Trigger Manually
 
-- (void)performManualAnimation:(UIView *)view
-                         color:(UIColor *)color
-                         state:(MCSwipeTableViewCellState)state
-                  xTranslation:(CGFloat)xTranslation
-                    completion:(void (^ __nullable)(BOOL finished))completion {
+- (void)performManualSwipeAnimation:(UIView * _Nullable)view
+                              color:(UIColor *)color
+                              state:(MCSwipeTableViewCellState)state
+                       xTranslation:(CGFloat)xTranslation
+                         completion:(void (^ __nullable)(BOOL finished))completion {
     _firstTrigger = 1.0;
     _secondTrigger = 1.0;
+    
+    // Use a mock percentage to determine the right swipe direction.
+    CGFloat mockPercentage = (xTranslation > 0) ? 0.01 : -0.01;
+    _direction = [self directionWithPercentage:mockPercentage];
+    
+    _shouldAnimateIcons = false;
     
     switch (state) {
         case MCSwipeTableViewCellState1: {
@@ -706,42 +732,70 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
     }
     
     [self animateSliderWithXTranslation:xTranslation
+                 swipeAnimationDuration:0.3f
+                              withDelay:0.0f
+                endingAnimationDuration:0.3f
+                               hasEnded:NO
+                    ignoreSwipeProgress:YES
+                             completion:^(BOOL finished) {
+                                 _firstTrigger = kMCStop1;
+                                 _secondTrigger = kMCStop2;
+                                 
+                                 // set the intial view back
+                                 switch (state) {
+                                     case MCSwipeTableViewCellState1: {
+                                         _view1 = _tempHolderView;
+                                         _color1 = _tempHolderColor;
+                                     } break;
+                                     case MCSwipeTableViewCellState2: {
+                                         _view2 = _tempHolderView;
+                                         _color2 = _tempHolderColor;
+                                     } break;
+                                     case MCSwipeTableViewCellState3: {
+                                         _view3= _tempHolderView;
+                                         _color3 = _tempHolderColor;
+                                     } break;
+                                     case MCSwipeTableViewCellState4: {
+                                         _view4 = _tempHolderView;
+                                         _color4 = _tempHolderColor;
+                                     } break;
+                                     default:
+                                         break;
+                                 }
+                                 
+                                 if (completion) {
+                                     completion(YES);
+                                 }
+                             }];
+}
+
+- (void)performManualBounceAnimation:(CGFloat)xTranslation
+                          completion:(void (^ __nullable)(BOOL finished))completion {
+    _firstTrigger = 1.0;
+    _secondTrigger = 1.0;
+    
+    _shouldAnimateIcons = false;
+    
+    // Use a mock percentage to determine the right swipe direction.
+    CGFloat mockPercentage = (xTranslation > 0) ? 0.01 : -0.01;
+    _direction = [self directionWithPercentage:mockPercentage];
+    
+    [self animateSliderWithXTranslation:xTranslation
                  swipeAnimationDuration:0.5f
                               withDelay:0.0f
                 endingAnimationDuration:0.f
                                hasEnded:NO
+                    ignoreSwipeProgress:YES
                              completion:^(BOOL finished) {
                                  [self animateSliderWithXTranslation:0.f
                                               swipeAnimationDuration:0.f
                                                            withDelay:0.5f
                                              endingAnimationDuration:0.5f
                                                             hasEnded:YES
+                                                 ignoreSwipeProgress:YES
                                                           completion:^(BOOL finished) {
                                                               _firstTrigger = kMCStop1;
                                                               _secondTrigger = kMCStop2;
-                                                              
-                                                              // set the correct view back
-                                                              switch (state) {
-                                                                  case MCSwipeTableViewCellState1: {
-                                                                      _view1 = _tempHolderView;
-                                                                      _color1 = _tempHolderColor;
-                                                                  } break;
-                                                                  case MCSwipeTableViewCellState2: {
-                                                                      _view2 = _tempHolderView;
-                                                                      _color2 = _tempHolderColor;
-                                                                  } break;
-                                                                  case MCSwipeTableViewCellState3: {
-                                                                      _view3= _tempHolderView;
-                                                                      _color3 = _tempHolderColor;
-                                                                  } break;
-                                                                  case MCSwipeTableViewCellState4: {
-                                                                      _view4 = _tempHolderView;
-                                                                      _color4 = _tempHolderColor;
-                                                                  } break;
-                                                                  default:
-                                                                      break;
-                                                              }
-
                                                               
                                                               if (completion) {
                                                                   completion(YES);
@@ -750,12 +804,12 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
                              }];
 }
 
-- (void)performManualLeftAnimation:(UIView *)view color:(UIColor *)color state:(MCSwipeTableViewCellState)state completion:(void (^ __nullable)(BOOL finished))completion {
-    [self performManualAnimation:view color:color state:state xTranslation:self.frame.size.width completion:completion];
+- (void)performManualLeftAnimation:(UIView * _Nullable)view color:(UIColor *)color state:(MCSwipeTableViewCellState)state completion:(void (^ __nullable)(BOOL finished))completion {
+    [self performManualSwipeAnimation:view color:color state:state xTranslation:self.frame.size.width completion:completion];
 }
 
-- (void)performManualRightAnimation:(UIView *)view color:(UIColor *)color state:(MCSwipeTableViewCellState)state completion:(void (^ __nullable)(BOOL finished))completion {
-    [self performManualAnimation:view color:color state:state xTranslation:-self.frame.size.width completion:completion];
+- (void)performManualRightAnimation:(UIView * _Nullable)view color:(UIColor *)color state:(MCSwipeTableViewCellState)state completion:(void (^ __nullable)(BOOL finished))completion {
+    [self performManualSwipeAnimation:view color:color state:state xTranslation:-self.frame.size.width completion:completion];
 }
 
 #pragma mark - Utilities
@@ -808,3 +862,4 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
 }
 
 @end
+
