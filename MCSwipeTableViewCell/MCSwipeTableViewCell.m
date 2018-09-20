@@ -37,6 +37,10 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
 @property (nonatomic, strong) UIView *slidingView;
 @property (nonatomic, strong) UIView *activeView;
 
+@property (nonatomic, strong) UIView *tempHolderView;
+@property (nonatomic, strong) UIColor *tempHolderColor;
+
+
 // Initialization
 - (void)initializer;
 - (void)initDefaults;
@@ -660,10 +664,46 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
 
 #pragma mark - Trigger Manually
 
-- (void)performManualAnimation:(CGFloat)xTranslation completion:(void (^ __nullable)(BOOL finished))completion {
-    
+- (void)performManualAnimation:(UIView *)view
+                         color:(UIColor *)color
+                         state:(MCSwipeTableViewCellState)state
+                  xTranslation:(CGFloat)xTranslation
+                    completion:(void (^ __nullable)(BOOL finished))completion {
     _firstTrigger = 1.0;
     _secondTrigger = 1.0;
+    
+    switch (state) {
+        case MCSwipeTableViewCellState1: {
+            _tempHolderView = _view1;
+            _tempHolderColor = _color1;
+            
+            _view1 = view;
+            _color1 = color;
+        } break;
+        case MCSwipeTableViewCellState2: {
+            _tempHolderView = _view2;
+            _tempHolderColor = _color2;
+            
+            _view2 = view;
+            _color2 = color;
+        } break;
+        case MCSwipeTableViewCellState3: {
+            _tempHolderView = _view3;
+            _tempHolderColor = _color3;
+            
+            _view3 = view;
+            _color3 = color;
+        } break;
+        case MCSwipeTableViewCellState4: {
+            _tempHolderView = _view4;
+            _tempHolderColor = _color4;
+            
+            _view4 = view;
+            _color4 = color;
+        } break;
+        default:
+            break;
+    }
     
     [self animateSliderWithXTranslation:xTranslation
                  swipeAnimationDuration:0.5f
@@ -680,6 +720,29 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
                                                               _firstTrigger = kMCStop1;
                                                               _secondTrigger = kMCStop2;
                                                               
+                                                              // set the correct view back
+                                                              switch (state) {
+                                                                  case MCSwipeTableViewCellState1: {
+                                                                      _view1 = _tempHolderView;
+                                                                      _color1 = _tempHolderColor;
+                                                                  } break;
+                                                                  case MCSwipeTableViewCellState2: {
+                                                                      _view2 = _tempHolderView;
+                                                                      _color2 = _tempHolderColor;
+                                                                  } break;
+                                                                  case MCSwipeTableViewCellState3: {
+                                                                      _view3= _tempHolderView;
+                                                                      _color3 = _tempHolderColor;
+                                                                  } break;
+                                                                  case MCSwipeTableViewCellState4: {
+                                                                      _view4 = _tempHolderView;
+                                                                      _color4 = _tempHolderColor;
+                                                                  } break;
+                                                                  default:
+                                                                      break;
+                                                              }
+
+                                                              
                                                               if (completion) {
                                                                   completion(YES);
                                                               }
@@ -687,12 +750,12 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
                              }];
 }
 
-- (void)performManualLeftAnimation:(void (^ __nullable)(BOOL finished))completion {
-    [self performManualAnimation:150.f completion:completion];
+- (void)performManualLeftAnimation:(UIView *)view color:(UIColor *)color state:(MCSwipeTableViewCellState)state completion:(void (^ __nullable)(BOOL finished))completion {
+    [self performManualAnimation:view color:color state:state xTranslation:self.frame.size.width completion:completion];
 }
 
-- (void)performManualRightAnimation:(void (^ __nullable)(BOOL finished))completion {
-    [self performManualAnimation:-150.f completion:completion];
+- (void)performManualRightAnimation:(UIView *)view color:(UIColor *)color state:(MCSwipeTableViewCellState)state completion:(void (^ __nullable)(BOOL finished))completion {
+    [self performManualAnimation:view color:color state:state xTranslation:-self.frame.size.width completion:completion];
 }
 
 #pragma mark - Utilities
